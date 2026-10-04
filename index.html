@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X525v Share</title>
+<meta name="description" content="X525v - pusat berbagi konten dan link.">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#080808;color:#fff;min-height:100vh}
+header{position:sticky;top:0;z-index:10;background:rgba(8,8,8,.9);backdrop-filter:blur(14px);border-bottom:1px solid #222}
+.nav{max-width:1100px;margin:auto;padding:18px 20px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:22px;font-weight:800;letter-spacing:1px}
+.wrap{max-width:1100px;margin:auto;padding:45px 20px}
+.hero{text-align:center;padding:35px 0}
+.hero h1{font-size:clamp(32px,7vw,64px);margin-bottom:12px}
+.hero p{color:#aaa}
+.search{width:100%;margin:25px 0;padding:15px 17px;border:1px solid #333;border-radius:14px;background:#111;color:#fff;outline:none}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:25px}
+.filter,.btn{border:1px solid #333;background:#111;color:#fff;padding:10px 14px;border-radius:10px;cursor:pointer}
+.filter.active,.btn.primary{background:#fff;color:#000;border-color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.card{background:#101010;border:1px solid #242424;border-radius:17px;overflow:hidden}
+.thumb{width:100%;height:155px;object-fit:cover;background:#171717;display:block}
+.cardbody{padding:17px}
+.badge{display:inline-block;font-size:12px;color:#aaa;border:1px solid #333;padding:5px 8px;border-radius:20px;margin-bottom:10px}
+.card h3{margin-bottom:8px}
+.desc{color:#999;font-size:14px;line-height:1.5;min-height:42px}
+.actions{display:flex;gap:8px;margin-top:15px}
+.actions .btn{flex:1;text-align:center;text-decoration:none}
+.empty{text-align:center;color:#777;padding:50px}
+#adminPanel{display:none;position:fixed;inset:0;background:#070707;z-index:100;overflow:auto}
+.adminWrap{max-width:1000px;margin:auto;padding:25px 20px}
+.adminTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
+.form{background:#101010;border:1px solid #252525;border-radius:17px;padding:20px;margin-bottom:20px}
+label{display:block;color:#aaa;font-size:13px;margin:14px 0 7px}
+input,textarea,select{width:100%;padding:13px;background:#080808;border:1px solid #333;border-radius:10px;color:#fff;outline:none}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.adminItem{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:15px 0;border-bottom:1px solid #242424}
+.adminActions{display:flex;gap:7px}
+.danger{border-color:#733;background:#210b0b}
+.loginBox{max-width:420px;margin:12vh auto;background:#101010;border:1px solid #292929;padding:25px;border-radius:18px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:12px 17px;border-radius:12px;display:none;z-index:200}
+@media(max-width:650px){.row{grid-template-columns:1fr}.adminItem{align-items:flex-start;flex-direction:column}.adminActions{width:100%}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">X525v</div>
+    <div style="color:#777;font-size:12px">SHARE</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Share.</h1>
+    <p>Temukan konten dan link yang dibagikan.</p>
+  </section>
+
+  <input id="search" class="search" placeholder="Cari konten...">
+
+  <div id="filters" class="filters"></div>
+  <section id="contentGrid" class="grid"></section>
+</main>
+
+<div id="adminPanel">
+  <div class="adminWrap">
+    <div id="loginView" class="loginBox">
+      <h2 style="margin-bottom:8px">Admin Access</h2>
+      <p style="color:#888;font-size:14px">Panel ini hanya untuk administrator.</p>
+      <label>Email admin</label>
+      <input id="email" type="email" autocomplete="username">
+      <label>Password</label>
+      <input id="password" type="password" autocomplete="current-password">
+      <button class="btn primary" style="width:100%;margin-top:16px" onclick="login()">Masuk</button>
+      <button class="btn" style="width:100%;margin-top:8px" onclick="closeAdmin()">Kembali</button>
+    </div>
+
+    <div id="dashboard" style="display:none">
+      <div class="adminTop">
+        <div>
+          <h2>Admin Panel</h2>
+          <p style="color:#777;font-size:13px">Kelola konten publik X525v</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" onclick="logout()">Logout</button>
+          <button class="btn" onclick="closeAdmin()">Tutup</button>
+        </div>
+      </div>
+
+      <div class="form">
+        <h3 id="formTitle">Tambah Konten</h3>
+        <input type="hidden" id="editId">
+        <label>Judul</label>
+        <input id="title" placeholder="Contoh: Website Tools">
+        <label>Deskripsi</label>
+        <textarea id="description" placeholder="Deskripsi singkat..."></textarea>
+        <div class="row">
+          <div>
+            <label>Kategori</label>
+            <input id="category" placeholder="APK / Tools / Website">
+          </div>
+          <div>
+            <label>Thumbnail URL</label>
+            <input id="thumbnail" placeholder="https://...">
+          </div>
+        </div>
+        <label>Link tujuan</label>
+        <input id="url" placeholder="https://...">
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn primary" onclick="saveContent()">Simpan</button>
+          <button class="btn" onclick="resetForm()">Batal</button>
+        </div>
+      </div>
+
+      <div class="form">
+        <h3 style="margin-bottom:10px">Daftar Konten</h3>
+        <div id="adminList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/*
+  ================================
+  X525v SHARE - SUPABASE CONFIG
+  ================================
+  Isi dua nilai ini dengan data dari:
+  Supabase Dashboard > Project Settings > API
+*/
+const SUPABASE_URL = "PASTE_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY";
+
+let sb = null;
+let contents = [];
+let activeCategory = "Semua";
+
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.style.display="block";
+  setTimeout(()=>el.style.display="none",2200);
+}
+
+function setup(){
+  if(!SUPABASE_URL.startsWith("http") || SUPABASE_ANON_KEY.includes("PASTE_")){
+    document.getElementById("contentGrid").innerHTML =
+      '<div class="empty" style="grid-column:1/-1">Supabase belum dikonfigurasi. Isi SUPABASE_URL dan SUPABASE_ANON_KEY di kode.</div>';
+    return false;
+  }
+  sb = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  loadContents();
+  return true;
+}
+
+async function loadContents(){
+  const {data,error}=await sb.from("contents").select("*").eq("published",true).order("created_at",{ascending:false});
+  if(error){console.error(error);return}
+  contents=data||[];
+  renderFilters();
+  renderContents();
+}
+
+function renderFilters(){
+  const cats=["Semua",...new Set(contents.map(x=>x.category).filter(Boolean))];
+  document.getElementById("filters").innerHTML=cats.map(c=>
+    `<button class="filter ${c===activeCategory?'active':''}" onclick="setCategory('${escapeAttr(c)}')">${escapeHtml(c)}</button>`
+  ).join("");
+}
+
+function setCategory(c){
+  activeCategory=c; renderFilters(); renderContents();
+}
+
+function renderContents(){
+  const q=document.getElementById("search").value.toLowerCase();
+  const list=contents.filter(x=>
+    (activeCategory==="Semua" || x.category===activeCategory) &&
+    ((x.title||"").toLowerCase().includes(q) || (x.description||"").toLowerCase().includes(q))
+  );
+  const grid=document.getElementById("contentGrid");
+  if(!list.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">Belum ada konten.</div>';return}
+  grid.innerHTML=list.map(x=>`
+    <article class="card">
+      ${x.thumbnail_url?`<img class="thumb" src="${escapeAttr(x.thumbnail_url)}" alt="">`:`<div class="thumb"></div>`}
+      <div class="cardbody">
+        <span class="badge">${escapeHtml(x.category||"Umum")}</span>
+        <h3>${escapeHtml(x.title)}</h3>
+        <p class="desc">${escapeHtml(x.description||"")}</p>
+        <div class="actions">
+          <a class="btn primary" href="${escapeAttr(x.url)}" target="_blank" rel="noopener noreferrer">Buka</a>
+          <button class="btn" onclick="copyLink('${escapeAttr(x.url)}')">Salin</button>
+        </div>
+      </div>
+    </article>`).join("");
+}
+
+document.getElementById("search").addEventListener("input",renderContents);
+
+async function openAdmin(){
+  document.getElementById("adminPanel").style.display="block";
+  if(!sb) setup();
+  if(sb){
+    const {data}=await sb.auth.getSession();
+    if(data.session) showDashboard();
+  }
+}
+
+function closeAdmin(){document.getElementById("adminPanel").style.display="none"}
+
+async function login(){
+  if(!sb) return toast("Supabase belum dikonfigurasi.");
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("password").value;
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error){toast("Login gagal");return}
+  showDashboard();
+}
+
+function showDashboard(){
+  document.getElementById("loginView").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+  loadAdmin();
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("loginView").style.display="block";
+}
+
+async function loadAdmin(){
+  const {data,error}=await sb.from("contents").select("*").order("created_at",{ascending:false});
+  if(error){toast("Tidak bisa mengambil data");return}
+  document.getElementById("adminList").innerHTML=(data||[]).map(x=>`
+    <div class="adminItem">
+      <div>
+        <b>${escapeHtml(x.title)}</b>
+        <div style="color:#777;font-size:12px;margin-top:5px">${escapeHtml(x.category||"Umum")} · ${x.published?"Published":"Draft"}</div>
+      </div>
+      <div class="adminActions">
+        <button class="btn" onclick='editContent(${JSON.stringify(x).replace(/</g,"\\u003c")})'>Edit</button>
+        <button class="btn danger" onclick="deleteContent('${x.id}')">Hapus</button>
+      </div>
+    </div>`).join("") || '<div class="empty">Belum ada data.</div>';
+}
+
+async function saveContent(){
+  const title=document.getElementById("title").value.trim();
+  const description=document.getElementById("description").value.trim();
+  const category=document.getElementById("category").value.trim()||"Umum";
+  const thumbnail_url=document.getElementById("thumbnail").value.trim();
+  const url=document.getElementById("url").value.trim();
+  const id=document.getElementById("editId").value;
+
+  if(!title || !url) return toast("Judul dan link wajib diisi.");
+
+  const payload={title,description,category,thumbnail_url,url,published:true};
+  let result;
+  if(id) result=await sb.from("contents").update(payload).eq("id",id);
+  else result=await sb.from("contents").insert(payload);
+
+  if(result.error){console.error(result.error);toast("Gagal menyimpan");return}
+  toast("Berhasil disimpan");
+  resetForm(); await loadContents(); await loadAdmin();
+}
+
+function editContent(x){
+  document.getElementById("formTitle").textContent="Edit Konten";
+  document.getElementById("editId").value=x.id;
+  document.getElementById("title").value=x.title||"";
+  document.getElementById("description").value=x.description||"";
+  document.getElementById("category").value=x.category||"";
+  document.getElementById("thumbnail").value=x.thumbnail_url||"";
+  document.getElementById("url").value=x.url||"";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function deleteContent(id){
+  if(!confirm("Hapus konten ini?")) return;
+  const {error}=await sb.from("contents").delete().eq("id",id);
+  if(error){toast("Gagal menghapus");return}
+  toast("Konten dihapus");
+  await loadContents(); await loadAdmin();
+}
+
+function resetForm(){
+  document.getElementById("formTitle").textContent="Tambah Konten";
+  ["editId","title","description","category","thumbnail","url"].forEach(id=>document.getElementById(id).value="");
+}
+
+async function copyLink(url){
+  await navigator.clipboard.writeText(url);
+  toast("Link disalin");
+}
+
+function escapeHtml(s){
+  return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+function escapeAttr(s){return escapeHtml(s)}
+
+document.addEventListener("keydown",e=>{
+  // Cara login #2: komputer/laptop
+  // Tekan Ctrl + Shift + X
+  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==="x"){
+    e.preventDefault(); openAdmin();
+  }
+});
+
+// Cara login #1: HP / URL rahasia
+// Contoh:
+// https://website-kamu.github.io/x525v-share/?akuadalahsanglegandaabiescc
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.has("akuadalahsanglegandaabiescc")){
+    window.addEventListener("load", () => openAdmin());
+  }
+})();
+
+setup();
+</script>
+</body>
+</html>
