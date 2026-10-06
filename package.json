@@ -1,0 +1,19 @@
+{
+  "name": "x525v-share-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "X525V Share Hub - full-stack content sharing platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0"
+  }
+}
