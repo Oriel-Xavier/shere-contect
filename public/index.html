@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="theme-color" content="#050505">
+  <meta name="description" content="X525V Share Hub — pusat berbagi konten dan link.">
+  <title>X525V — Share Hub</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="loader" id="loader">
+    <div class="loader-core">
+      <div class="loader-logo">X525V</div>
+      <div class="loader-line"><i></i></div>
+      <div class="loader-text">INITIALIZING EXPERIENCE</div>
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+  <div class="grid-bg"></div>
+  <div class="noise"></div>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor2" id="cursor2"></div>
+
+  <header id="header">
+    <div class="nav">
+      <div class="logo">X525V<span> / SHARE</span></div>
+      <div class="status"><i class="status-dot"></i> ONLINE</div>
+      <div class="navtag">CONTENT HUB</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-orbit"></div>
+      <div class="hero-content">
+        <div class="eyebrow"><span class="status-dot"></span> X525V SHARE HUB</div>
+        <h1><span>S</span><span>H</span><span>A</span><span>R</span><span>E</span><br>DISCOVER.</h1>
+        <p>Temukan konten, tools, APK, website, dan link pilihan dalam satu tempat dengan pengalaman yang cepat, modern, dan premium.</p>
+        <div class="searchbox">
+          <span class="searchicon">⌕</span>
+          <input id="search" placeholder="Cari konten..." autocomplete="off">
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="toolbar">
+        <div class="section-label">EXPLORE / CONTENT</div>
+        <div id="filters" class="filters"></div>
+      </div>
+      <div id="contentGrid" class="grid">
+        <div class="spinner"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>X525V — SHARE HUB · ALL SYSTEMS ONLINE</footer>
+
+  <div id="adminPanel">
+    <div class="adminWrap">
+      <div id="loginView" class="loginBox">
+        <div class="mark">X525V</div>
+        <h2>Admin Access</h2>
+        <p>Panel pengelolaan konten. Login diverifikasi oleh backend.</p>
+        <label>Email</label>
+        <input id="email" type="email" autocomplete="username">
+        <label>Password</label>
+        <input id="password" type="password" autocomplete="current-password">
+        <button class="btn primary wide" id="loginBtn">Masuk</button>
+        <button class="btn wide" id="closeLoginBtn">Kembali</button>
+      </div>
+
+      <div id="dashboard" class="dashboard">
+        <div class="adminTop">
+          <div>
+            <h2>Admin Panel</h2>
+            <p>Kelola konten publik X525V</p>
+          </div>
+          <div class="adminButtons">
+            <button class="btn" id="logoutBtn">Logout</button>
+            <button class="btn" id="closeAdminBtn">Tutup</button>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><small>TOTAL</small><strong id="statTotal">0</strong></div>
+          <div class="stat"><small>PUBLISHED</small><strong id="statPublished">0</strong></div>
+          <div class="stat"><small>CATEGORIES</small><strong id="statCategories">0</strong></div>
+        </div>
+
+        <div class="form">
+          <div class="formHeader">
+            <div>
+              <span class="mini-label">CONTENT MANAGER</span>
+              <h3 id="formTitle">Tambah Konten</h3>
+            </div>
+            <span class="live-pill">● LIVE API</span>
+          </div>
+
+          <input type="hidden" id="editId">
+
+          <label>Judul</label>
+          <input id="title" placeholder="Contoh: Website Tools">
+
+          <label>Deskripsi</label>
+          <textarea id="description" placeholder="Deskripsi singkat..."></textarea>
+
+          <div class="row">
+            <div>
+              <label>Kategori</label>
+              <input id="category" placeholder="APK / Tools / Website">
+            </div>
+            <div>
+              <label>Thumbnail URL</label>
+              <input id="thumbnail" placeholder="https://...">
+            </div>
+          </div>
+
+          <label>Link tujuan</label>
+          <input id="url" placeholder="https://...">
+
+          <label class="check">
+            <input id="published" type="checkbox" checked>
+            <span>Publish ke halaman utama</span>
+          </label>
+
+          <div class="formActions">
+            <button class="btn primary" id="saveBtn">Simpan</button>
+            <button class="btn" id="resetBtn">Batal</button>
+          </div>
+        </div>
+
+        <div class="form">
+          <div class="listHeader">
+            <h3>Daftar Konten</h3>
+            <button class="btn" id="refreshAdminBtn">Refresh</button>
+          </div>
+          <div id="adminList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
